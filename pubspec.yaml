@@ -1,0 +1,61 @@
+name: GrooveTracker
+description: A new Flutter project.
+
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.11.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # 状態管理
+  flutter_riverpod: ^2.5.0
+
+  # カレンダー
+  table_calendar: ^3.1.2
+
+  # ローカルDB
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+
+  # アイコン
+  cupertino_icons: ^1.0.8
+
+  # URL再生
+  url_launcher: ^6.3.0
+
+  # 動画再生（要件にあるので追加してOK）
+  video_player: ^2.9.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  # Hiveコード生成
+  hive_generator: ^2.0.1
+  build_runner: ^2.4.6
+
+  # アプリアイコン生成
+  flutter_launcher_icons: ^0.14.3
+
+flutter:
+
+  uses-material-design: true
+
+  # アセット（今後画像使う前提で整理）
+  assets:
+    - assets/
+
+# =========================
+# アプリアイコン設定
+# =========================
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon.png"
+  adaptive_icon_background: "#09090F"
+  adaptive_icon_foreground: "assets/icon.png"
