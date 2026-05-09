@@ -247,81 +247,89 @@ class _LogInputPageState
     required IconData icon,
     required String title,
     required String value,
+    bool expanded = true,
   }) {
-    return Expanded(
-      child: Container(
-        margin:
+    final card = Container(
+      margin:
+          const EdgeInsets
+              .all(6),
+      decoration:
+          BoxDecoration(
+        borderRadius:
+            BorderRadius
+                .circular(20),
+        gradient:
+            const LinearGradient(
+          colors: [
+            Color(
+                0xFF111827),
+            Color(
+                0xFF1E1B4B),
+          ],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors
+                .cyan
+                .withOpacity(
+                    0.45),
+            blurRadius: 18,
+          )
+        ],
+        border: Border.all(
+          color: Colors.cyan,
+          width: 1.4,
+        ),
+      ),
+      child: Padding(
+        padding:
             const EdgeInsets
-                .all(6),
-        decoration:
-            BoxDecoration(
-          borderRadius:
-              BorderRadius
-                  .circular(20),
-          gradient:
-              const LinearGradient(
-            colors: [
-              Color(
-                  0xFF111827),
-              Color(
-                  0xFF1E1B4B),
-            ],
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors
-                  .cyan
-                  .withOpacity(
-                      0.45),
-              blurRadius: 18,
+                .all(18),
+        child: Column(
+          mainAxisSize:
+              MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              color:
+                  Colors.cyan,
+              size: 28,
+            ),
+            const SizedBox(
+                height: 10),
+            Text(
+              title,
+              style:
+                  const TextStyle(
+                color: Colors
+                    .white70,
+              ),
+            ),
+            const SizedBox(
+                height: 8),
+            Text(
+              value,
+              style:
+                  const TextStyle(
+                color: Colors
+                    .white,
+                fontSize: 22,
+                fontWeight:
+                    FontWeight
+                        .bold,
+              ),
             ),
           ],
-          border: Border.all(
-            color: Colors.cyan,
-            width: 1.4,
-          ),
-        ),
-        child: Padding(
-          padding:
-              const EdgeInsets
-                  .all(18),
-          child: Column(
-            children: [
-              Icon(
-                icon,
-                color:
-                    Colors.cyan,
-                size: 28,
-              ),
-              const SizedBox(
-                  height: 10),
-              Text(
-                title,
-                style:
-                    const TextStyle(
-                  color: Colors
-                      .white70,
-                ),
-              ),
-              const SizedBox(
-                  height: 8),
-              Text(
-                value,
-                style:
-                    const TextStyle(
-                  color: Colors
-                      .white,
-                  fontSize: 22,
-                  fontWeight:
-                      FontWeight
-                          .bold,
-                ),
-              ),
-            ],
-          ),
         ),
       ),
     );
+
+    if (expanded) {
+      return Expanded(
+        child: card,
+      );
+    }
+    return card;
   }
 
   @override
@@ -445,13 +453,21 @@ class _LogInputPageState
                 ],
               ),
 
-              neonCard(
-                icon: Icons
-                    .bolt,
-                title:
-                    'STREAK',
-                value:
-                    '${getStreakDays()}日',
+              Row(
+                children: [
+                  Expanded(
+                    child: neonCard(
+                      icon: Icons
+                          .bolt,
+                      title:
+                          'STREAK',
+                      value:
+                          '${getStreakDays()}日',
+                      expanded:
+                          false,
+                    ),
+                  ),
+                ],
               ),
 
               const SizedBox(
