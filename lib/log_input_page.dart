@@ -4,6 +4,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'log.dart';
 import 'log_list_page.dart';
 import 'calendar_page.dart';
+import 'help_page.dart';
 
 class LogInputPage extends StatefulWidget {
   final Log? editLog;
@@ -382,6 +383,21 @@ class _LogInputPageState
                 MaterialPageRoute(
                   builder: (_) =>
                       const CalendarPage(),
+                ),
+              );
+            },
+          ),
+          IconButton(
+            color:
+                Colors.greenAccent,
+            icon: const Icon(
+                Icons.help_outline),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) =>
+                      const HelpPage(),
                 ),
               );
             },
