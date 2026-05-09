@@ -24,16 +24,12 @@ class _CalendarPageState
       Hive.box<Log>('logs');
 
   List<Log> getMonthlyLogs() {
-    final now =
-        DateTime.now();
-
-    return box.values.where(
-      (log) =>
-          log.date.year ==
-              now.year &&
+    return box.values.where((log) {
+      return log.date.year ==
+              focusedDay.year &&
           log.date.month ==
-              now.month,
-    ).toList();
+              focusedDay.month;
+    }).toList();
   }
 
   int getMonthlyTotalMinutes() {
@@ -70,10 +66,10 @@ class _CalendarPageState
       DateTime day) {
     return box.values
         .where(
-          (log) =>
-              isSameDay(
-                  log.date,
-                  day),
+          (log) => isSameDay(
+            log.date,
+            day,
+          ),
         )
         .fold(
           0,
@@ -128,15 +124,6 @@ class _CalendarPageState
           border: Border.all(
               color:
                   Colors.cyan),
-          boxShadow: [
-            BoxShadow(
-              color: Colors
-                  .cyan
-                  .withOpacity(
-                      0.2),
-              blurRadius: 12,
-            )
-          ],
         ),
         child: Padding(
           padding:
@@ -194,225 +181,210 @@ class _CalendarPageState
           const Color(
               0xFF09090F),
       appBar: AppBar(
-        backgroundColor:
-            Colors.black,
         title: const Text(
           'CALENDAR',
           style: TextStyle(
             color:
                 Colors.cyan,
-            fontWeight:
-                FontWeight.bold,
             letterSpacing: 2,
           ),
         ),
       ),
-      body: Padding(
-        padding:
-            const EdgeInsets
-                .all(12),
-        child: Column(
-          children: [
-            Row(
-              children: [
-                statCard(
-                  'TOTAL',
-                  '${getMonthlyTotalMinutes()}分',
-                  Icons
-                      .local_fire_department,
-                ),
-                statCard(
-                  'DAYS',
-                  '${getMonthlyPracticeDays()}',
-                  Icons
-                      .calendar_today,
-                ),
-                statCard(
-                  'AVG',
-                  '${getMonthlyAverage()}分',
-                  Icons
-                      .timeline,
-                ),
-              ],
-            ),
-
-            const SizedBox(
-                height: 10),
-
-            Expanded(
-              flex: 3,
-              child: Container(
-                decoration:
-                    BoxDecoration(
-                  color: const Color(
-                      0xFF111827),
-                  borderRadius:
-                      BorderRadius
-                          .circular(
-                              20),
-                  border:
-                      Border.all(
-                    color: Colors
-                        .cyan,
-                  ),
-                ),
-                child:
-                    TableCalendar(
-                  firstDay:
-                      DateTime(
-                          2020),
-                  lastDay:
-                      DateTime(
-                          2100),
-                  focusedDay:
-                      focusedDay,
-                  rowHeight: 42,
-                  startingDayOfWeek:
-                      StartingDayOfWeek
-                          .sunday,
-                  selectedDayPredicate:
-                      (day) =>
-                          isSameDay(
-                    selectedDay,
-                    day,
-                  ),
-                  onDaySelected:
-                      (
-                    selected,
-                    focused,
-                  ) {
-                    setState(() {
-                      selectedDay =
-                          selected;
-                      focusedDay =
-                          focused;
-                    });
-                  },
-                  headerStyle:
-                      const HeaderStyle(
-                    formatButtonVisible:
-                        false,
-                    titleTextStyle:
-                        TextStyle(
-                      color: Colors
-                          .cyan,
-                      fontSize: 18,
-                    ),
-                  ),
-                  calendarStyle:
-                      const CalendarStyle(
-                    defaultTextStyle:
-                        TextStyle(
-                            color:
-                                Colors.white),
-                    weekendTextStyle:
-                        TextStyle(
-                            color:
-                                Colors.pinkAccent),
-                    outsideTextStyle:
-                        TextStyle(
-                            color:
-                                Colors.white24),
-                  ),
-                  calendarBuilders:
-                      CalendarBuilders(
-                    defaultBuilder:
-                        (
-                      context,
-                      day,
-                      _,
-                    ) {
-                      return Container(
-                        margin:
-                            const EdgeInsets
-                                .all(
-                                    4),
-                        decoration:
-                            BoxDecoration(
-                          color:
-                              getDayColor(
-                                  day),
-                          borderRadius:
-                              BorderRadius.circular(
-                                  8),
-                        ),
-                        child:
-                            Center(
-                          child:
-                              Text(
-                            '${day.day}',
-                            style: const TextStyle(
-                                color: Colors.white),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
+      body: SafeArea(
+        child:
+            SingleChildScrollView(
+          child: Center(
+            child: ConstrainedBox(
+              constraints:
+                  const BoxConstraints(
+                maxWidth: 900,
               ),
-            ),
-
-            const SizedBox(
-                height: 10),
-
-            Expanded(
-              flex: 2,
-              child:
-                  selectedLogs
-                          .isEmpty
-                      ? const Center(
-                          child:
-                              Text(
-                            'NO SESSION',
-                            style: TextStyle(
-                                color: Colors.white54),
+              child: Padding(
+                padding:
+                    const EdgeInsets
+                        .all(16),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        statCard(
+                          'TOTAL',
+                          '${getMonthlyTotalMinutes()}分',
+                          Icons
+                              .local_fire_department,
+                        ),
+                        statCard(
+                          'DAYS',
+                          '${getMonthlyPracticeDays()}',
+                          Icons
+                              .calendar_today,
+                        ),
+                        statCard(
+                          'AVG',
+                          '${getMonthlyAverage()}分',
+                          Icons
+                              .timeline,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(
+                        height: 20),
+                    Container(
+                      decoration:
+                          BoxDecoration(
+                        color: const Color(
+                            0xFF111827),
+                        borderRadius:
+                            BorderRadius.circular(
+                                20),
+                        border:
+                            Border.all(
+                          color: Colors
+                              .cyan,
+                        ),
+                      ),
+                      child:
+                          TableCalendar(
+                        firstDay:
+                            DateTime(
+                                2020),
+                        lastDay:
+                            DateTime(
+                                2100),
+                        focusedDay:
+                            focusedDay,
+                        rowHeight:
+                            52,
+                        selectedDayPredicate:
+                            (day) =>
+                                isSameDay(
+                          selectedDay,
+                          day,
+                        ),
+                        onDaySelected:
+                            (
+                          selected,
+                          focused,
+                        ) {
+                          setState(() {
+                            selectedDay =
+                                selected;
+                            focusedDay =
+                                focused;
+                          });
+                        },
+                        headerStyle:
+                            const HeaderStyle(
+                          formatButtonVisible:
+                              false,
+                          titleTextStyle:
+                              TextStyle(
+                            color: Colors
+                                .cyan,
+                            fontSize:
+                                18,
                           ),
-                        )
-                      : ListView.builder(
-                          itemCount:
-                              selectedLogs
-                                  .length,
-                          itemBuilder:
+                        ),
+                        calendarBuilders:
+                            CalendarBuilders(
+                          defaultBuilder:
                               (
                             context,
-                            index,
+                            day,
+                            _,
                           ) {
-                            final log =
-                                selectedLogs[
-                                    index];
-
-                            return ListTile(
-                              title:
-                                  Text(
-                                '${log.practiceMinutes}分',
-                                style: const TextStyle(
-                                    color: Colors.white),
+                            return Container(
+                              margin:
+                                  const EdgeInsets.all(
+                                      4),
+                              decoration:
+                                  BoxDecoration(
+                                color:
+                                    getDayColor(
+                                        day),
+                                borderRadius:
+                                    BorderRadius.circular(
+                                        10),
                               ),
-                              subtitle:
-                                  Text(
-                                log.memo,
-                                style: const TextStyle(
-                                    color: Colors.white70),
-                              ),
-                              onTap:
-                                  () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder:
-                                        (_) =>
-                                            LogDetailPage(
-                                      log:
-                                          log,
-                                    ),
+                              child:
+                                  Center(
+                                child:
+                                    Text(
+                                  '${day.day}',
+                                  style:
+                                      const TextStyle(
+                                    color: Colors.white,
                                   ),
-                                );
-                              },
+                                ),
+                              ),
                             );
                           },
                         ),
+                      ),
+                    ),
+                    const SizedBox(
+                        height: 20),
+                    SizedBox(
+                      height: 400,
+                      child:
+                          selectedLogs
+                                  .isEmpty
+                              ? const Center(
+                                  child:
+                                      Text(
+                                    'NO SESSION',
+                                    style: TextStyle(
+                                        color: Colors.white54),
+                                  ),
+                                )
+                              : ListView.builder(
+                                  itemCount:
+                                      selectedLogs.length,
+                                  itemBuilder:
+                                      (
+                                    context,
+                                    index,
+                                  ) {
+                                    final log =
+                                        selectedLogs[
+                                            index];
+
+                                    return ListTile(
+                                      title:
+                                          Text(
+                                        '${log.practiceMinutes}分',
+                                        style: const TextStyle(
+                                            color: Colors.white),
+                                      ),
+                                      subtitle:
+                                          Text(
+                                        log.memo,
+                                        style: const TextStyle(
+                                            color: Colors.white70),
+                                      ),
+                                      onTap:
+                                          () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder:
+                                                (_) =>
+                                                    LogDetailPage(
+                                              log:
+                                                  log,
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    );
+                                  },
+                                ),
+                    ),
+                  ],
+                ),
+              ),
             ),
-          ],
+          ),
         ),
       ),
     );

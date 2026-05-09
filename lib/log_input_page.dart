@@ -88,8 +88,7 @@ class _LogInputPageState
         now.subtract(
       Duration(
           days:
-              now.weekday -
-                  1),
+              now.weekday - 1),
     );
 
     return box.values
@@ -98,8 +97,7 @@ class _LogInputPageState
               log.date.isAfter(
                   start.subtract(
                       const Duration(
-                          days:
-                              1))),
+                          days: 1))),
         )
         .fold(
           0,
@@ -133,8 +131,7 @@ class _LogInputPageState
 
     for (int i = 0;
         i <
-            dates.length -
-                1;
+            dates.length - 1;
         i++) {
       final diff =
           dates[i]
@@ -171,10 +168,7 @@ class _LogInputPageState
             .trim();
 
     if (text.isEmpty) return;
-
-    if (tags.contains(text)) {
-      return;
-    }
+    if (tags.contains(text)) return;
 
     setState(() {
       tags.add(text);
@@ -183,34 +177,70 @@ class _LogInputPageState
   }
 
   void saveLog() async {
-    final log = Log(
-      date: selectedDate,
-      practiceMinutes:
-          int.tryParse(
-                timeController
-                    .text,
-              ) ??
-              0,
-      memo:
-          memoController.text,
-      tags: List.from(
-          tags),
-      videoUrl:
-          urlController.text,
-    );
-
-    if (widget.editLog !=
-        null) {
-      await box.put(
-        widget.editLog!.key,
-        log,
+    try {
+      final log = Log(
+        date: selectedDate,
+        practiceMinutes:
+            int.tryParse(
+                  timeController
+                      .text,
+                ) ??
+                0,
+        memo:
+            memoController.text,
+        tags:
+            List.from(tags),
+        videoUrl:
+            urlController.text,
       );
-    } else {
-      await box.add(log);
-    }
 
-    if (!mounted) return;
-    Navigator.pop(context);
+      if (widget.editLog !=
+          null) {
+        await box.put(
+          widget.editLog!.key,
+          log,
+        );
+
+        if (!mounted) return;
+        Navigator.pop(context);
+      } else {
+        await box.add(log);
+
+        if (!mounted) return;
+
+        FocusScope.of(context)
+            .unfocus();
+
+        ScaffoldMessenger.of(
+                context)
+            .showSnackBar(
+          const SnackBar(
+            content:
+                Text('保存しました'),
+          ),
+        );
+
+        timeController.clear();
+        memoController.clear();
+        tagController.clear();
+        urlController.clear();
+
+        setState(() {
+          tags.clear();
+          selectedDate =
+              DateTime.now();
+        });
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
+              context)
+          .showSnackBar(
+        SnackBar(
+          content: Text(
+              '保存失敗: $e'),
+        ),
+      );
+    }
   }
 
   Widget neonCard({
@@ -221,8 +251,8 @@ class _LogInputPageState
     return Expanded(
       child: Container(
         margin:
-            const EdgeInsets.all(
-                6),
+            const EdgeInsets
+                .all(6),
         decoration:
             BoxDecoration(
           borderRadius:
@@ -434,13 +464,6 @@ class _LogInputPageState
               Card(
                 color: const Color(
                     0xFF111827),
-                shape:
-                    RoundedRectangleBorder(
-                  borderRadius:
-                      BorderRadius
-                          .circular(
-                              20),
-                ),
                 child: Padding(
                   padding:
                       const EdgeInsets
@@ -456,9 +479,6 @@ class _LogInputPageState
                             TextStyle(
                           color: Colors
                               .cyan,
-                          fontWeight:
-                              FontWeight
-                                  .bold,
                         ),
                       ),
                       ...recentLogs.map(
@@ -486,21 +506,89 @@ class _LogInputPageState
               const SizedBox(
                   height: 20),
 
+              GestureDetector(
+                onTap: () async {
+                  final picked =
+                      await showDatePicker(
+                    context:
+                        context,
+                    initialDate:
+                        selectedDate,
+                    firstDate:
+                        DateTime(
+                            2024),
+                    lastDate:
+                        DateTime(
+                            2100),
+                  );
+
+                  if (picked !=
+                      null) {
+                    setState(() {
+                      selectedDate =
+                          picked;
+                    });
+                  }
+                },
+                child: Container(
+                  padding:
+                      const EdgeInsets
+                          .all(16),
+                  decoration:
+                      BoxDecoration(
+                    border: Border.all(
+                        color: Colors
+                            .cyan),
+                    borderRadius:
+                        BorderRadius.circular(
+                            14),
+                  ),
+                  child: Row(
+                    mainAxisAlignment:
+                        MainAxisAlignment
+                            .spaceBetween,
+                    children: [
+                      const Text(
+                        '練習日',
+                        style:
+                            TextStyle(
+                          color: Colors
+                              .white70,
+                        ),
+                      ),
+                      Text(
+                        '${selectedDate.year}/${selectedDate.month}/${selectedDate.day}',
+                        style:
+                            const TextStyle(
+                          color: Colors
+                              .cyan,
+                          fontWeight:
+                              FontWeight
+                                  .bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(
+                  height: 16),
+
               TextField(
                 controller:
                     timeController,
+                keyboardType:
+                    TextInputType
+                        .number,
                 style:
                     const TextStyle(
-                        color:
-                            Colors.white),
+                        color: Colors
+                            .white),
                 decoration:
                     const InputDecoration(
                   labelText:
                       '練習時間',
-                  labelStyle:
-                      TextStyle(
-                          color: Colors
-                              .cyan),
                   border:
                       OutlineInputBorder(),
                 ),
@@ -542,8 +630,8 @@ class _LogInputPageState
                     memoController,
                 style:
                     const TextStyle(
-                        color:
-                            Colors.white),
+                        color: Colors
+                            .white),
                 decoration:
                     const InputDecoration(
                   labelText:
@@ -559,13 +647,13 @@ class _LogInputPageState
               TextField(
                 controller:
                     tagController,
-                style:
-                    const TextStyle(
-                        color:
-                            Colors.white),
                 onSubmitted:
                     (_) =>
                         addTag(),
+                style:
+                    const TextStyle(
+                        color: Colors
+                            .white),
                 decoration:
                     const InputDecoration(
                   labelText:
@@ -594,8 +682,8 @@ class _LogInputPageState
                     urlController,
                 style:
                     const TextStyle(
-                        color:
-                            Colors.white),
+                        color: Colors
+                            .white),
                 decoration:
                     const InputDecoration(
                   labelText:
