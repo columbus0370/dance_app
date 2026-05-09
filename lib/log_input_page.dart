@@ -481,6 +481,9 @@ class _LogInputPageState
                       const EdgeInsets
                           .all(16),
                   child: Column(
+                    mainAxisSize:
+                        MainAxisSize
+                            .min,
                     crossAxisAlignment:
                         CrossAxisAlignment
                             .start,
