@@ -445,17 +445,13 @@ class _LogInputPageState
                 ],
               ),
 
-              Row(
-                children: [
-                  neonCard(
-                    icon: Icons
-                        .bolt,
-                    title:
-                        'STREAK',
-                    value:
-                        '${getStreakDays()}日',
-                  ),
-                ],
+              neonCard(
+                icon: Icons
+                    .bolt,
+                title:
+                    'STREAK',
+                value:
+                    '${getStreakDays()}日',
               ),
 
               const SizedBox(
