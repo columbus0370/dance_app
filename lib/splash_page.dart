@@ -47,29 +47,6 @@ class _SplashPageState
     super.dispose();
   }
 
-  Widget neonPad(
-      Color color) {
-    return Container(
-      width: 34,
-      height: 34,
-      decoration:
-          BoxDecoration(
-        color: color,
-        borderRadius:
-            BorderRadius.circular(
-                10),
-        boxShadow: [
-          BoxShadow(
-            color:
-                color.withOpacity(
-                    0.8),
-            blurRadius: 18,
-          )
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(
       BuildContext context) {
@@ -83,36 +60,21 @@ class _SplashPageState
               MainAxisAlignment
                   .center,
           children: [
-            Row(
-              mainAxisSize:
-                  MainAxisSize.min,
-              children: [
-                neonPad(
-                    Colors.cyan),
-                const SizedBox(
-                    width: 10),
-                neonPad(
-                    Colors.pinkAccent),
-              ],
+            ScaleTransition(
+              scale: Tween<double>(
+                begin: 0.5,
+                end: 1.0,
+              ).animate(_controller),
+              child: Image.asset(
+                'assets/icon.png',
+                width: 120,
+                height: 120,
+              ),
             ),
             const SizedBox(
-                height: 10),
-            Row(
-              mainAxisSize:
-                  MainAxisSize.min,
-              children: [
-                neonPad(
-                    Colors.deepPurpleAccent),
-                const SizedBox(
-                    width: 10),
-                neonPad(
-                    Colors.greenAccent),
-              ],
-            ),
-            const SizedBox(
-                height: 28),
+                height: 40),
             const Text(
-              'GrooveTracks',
+              'GrooveTracker',
               style: TextStyle(
                 color:
                     Colors.white,
