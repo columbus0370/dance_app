@@ -113,4 +113,21 @@ class PlantAvatarNotifier extends StateNotifier<PlantAvatar> {
   void resetLevelUpFlag() {
     previousLevel = state.level;
   }
+
+  Future<void> setExpDirect(
+      int exp) async {
+    final updatedPlant =
+        PlantAvatar(
+      exp: exp,
+      level: state.getLevel(exp),
+      createdAt:
+          state.createdAt,
+      month: state.month,
+      year: state.year,
+    );
+
+    await repo.updatePlant(
+        updatedPlant);
+    state = updatedPlant;
+  }
 }
