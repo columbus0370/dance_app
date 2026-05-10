@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'log.dart';
 import 'log_input_page.dart';
 import 'provider/log_provider.dart';
+import 'provider/plant_avatar_provider.dart';
 
 class LogDetailPage
     extends ConsumerWidget {
@@ -75,6 +76,27 @@ class LogDetailPage
                 Icons.delete),
             onPressed:
                 () async {
+              final plant =
+                  ref.read(
+                      plantAvatarProvider);
+
+              final deductExp =
+                  plant.calculateExp(
+                practiceMinutes:
+                    log.practiceMinutes,
+                streakDays: 0,
+                videoUploads: 0,
+              );
+
+              final newExp =
+                  (plant.currentExp -
+                          deductExp)
+                      .clamp(
+                          0,
+                          double
+                              .infinity)
+                      .toInt();
+
               await ref
                   .read(
                     logListProvider
@@ -84,6 +106,16 @@ class LogDetailPage
                     log.key
                         as int,
                   );
+
+              await ref
+                  .read(
+                      plantAvatarProvider
+                          .notifier)
+                  .setExpDirect(
+                      newExp);
+
+              if (!context.mounted)
+                return;
 
               Navigator.pop(
                   context);

@@ -31,6 +31,50 @@ class LogListPage
     }
   }
 
+  List<Map<String, dynamic>>
+      _groupLogsByMonth(
+          List<Log> logs) {
+    final grouped = <String,
+        List<Log>>{};
+
+    for (final log in logs) {
+      final key =
+          '${log.date.year}-${log.date.month.toString().padLeft(2, '0')}';
+      grouped
+          .putIfAbsent(
+              key, () => [])
+          .add(log);
+    }
+
+    final sorted = grouped
+        .entries
+        .toList()
+      ..sort((a, b) =>
+          b.key.compareTo(
+              a.key));
+
+    final result = <Map<
+        String,
+        dynamic>>[];
+
+    for (final entry
+        in sorted) {
+      result.add({
+        'type': 'header',
+        'month': entry.key,
+      });
+      for (final log
+          in entry.value) {
+        result.add({
+          'type': 'log',
+          'log': log,
+        });
+      }
+    }
+
+    return result;
+  }
+
   @override
   Widget build(
     BuildContext context,
@@ -39,6 +83,9 @@ class LogListPage
     final logs = ref.watch(
       filteredLogsProvider,
     );
+
+    final groupedLogs =
+        _groupLogsByMonth(logs);
 
     return Scaffold(
       backgroundColor:
@@ -123,14 +170,58 @@ class LogListPage
                   )
                 : ListView.builder(
                     itemCount:
-                        logs.length,
+                        groupedLogs
+                            .length,
                     itemBuilder:
                         (
                       context,
                       index,
                     ) {
+                      final item =
+                          groupedLogs[
+                              index];
+
+                      if (item['type'] ==
+                          'header') {
+                        final parts =
+                            (item['month']
+                                    as String)
+                                .split(
+                                    '-');
+                        final year =
+                            parts[0];
+                        final month =
+                            parts[1];
+
+                        return Padding(
+                          padding:
+                              const EdgeInsets
+                                  .fromLTRB(
+                                16,
+                                16,
+                                16,
+                                8),
+                          child: Text(
+                            '$year年$month月',
+                            style:
+                                const TextStyle(
+                              color: Colors
+                                  .pinkAccent,
+                              fontSize:
+                                  16,
+                              fontWeight:
+                                  FontWeight
+                                      .bold,
+                              letterSpacing:
+                                  1,
+                            ),
+                          ),
+                        );
+                      }
+
                       final log =
-                          logs[index];
+                          item['log']
+                              as Log;
 
                       return Container(
                         margin:

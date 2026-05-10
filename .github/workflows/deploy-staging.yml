@@ -1,9 +1,9 @@
-name: Deploy Flutter Web
+name: Deploy Flutter Web (Staging)
 
 on:
   push:
     branches:
-      - main
+      - develop
 
 permissions:
   contents: write
@@ -33,7 +33,7 @@ jobs:
         run: flutter pub get
 
       - name: Build web
-        run: flutter build web --release --base-href /dance_app/
+        run: flutter build web --release --base-href /dance_app/staging/
 
       - name: Verify build artifacts
         run: |
@@ -45,8 +45,9 @@ jobs:
             exit 1
           fi
 
-      - name: Deploy
+      - name: Deploy to Staging
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: build/web
+          destination_dir: staging
