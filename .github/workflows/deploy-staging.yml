@@ -28,7 +28,7 @@ jobs:
         run: flutter pub get
 
       - name: Build web
-        run: flutter build web --release --base-href /dance_app/staging/ || (echo "Build failed. Current directory:"; pwd; echo "Contents of build dir:"; ls -la build/ 2>/dev/null || echo "No build dir"; exit 1)
+        run: flutter build web --release --base-href /dance_app/staging/ -v 2>&1 | tail -100
 
       - name: Verify build artifacts
         run: |
