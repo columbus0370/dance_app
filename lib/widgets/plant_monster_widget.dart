@@ -330,7 +330,7 @@ class _PlantMonsterPainter extends CustomPainter {
       canvas.save();
       canvas.translate(center.dx, center.dy);
       canvas.rotate(i * 3.14159 / 4);
-      canvas.drawOval(const Rect.fromCenter(center: Offset(0, -16), width: 12, height: 20), petalPaint);
+      canvas.drawOval(Rect.fromCenter(center: const Offset(0, -16), width: 12, height: 20), petalPaint);
       canvas.restore();
     }
     // 中央（黄色）
