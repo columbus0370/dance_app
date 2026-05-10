@@ -29,6 +29,16 @@ jobs:
       - name: Build web
         run: flutter build web --release --base-href /dance_app/
 
+      - name: Verify build artifacts
+        run: |
+          if [ -d "build/web" ]; then
+            echo "Build directory exists"
+            ls -la build/web | head -20
+          else
+            echo "ERROR: build/web directory not found!"
+            exit 1
+          fi
+
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v4
         with:
