@@ -17,9 +17,8 @@ class LogRepository {
   }
 
   List<Log> getLogs() {
-    final entries = box.keys
-        .map((key) => MapEntry(key, box.get(key)!))
-        .toList();
+    final entries =
+        box.entries.toList();
 
     entries.sort((a, b) {
       final dateCompare =
