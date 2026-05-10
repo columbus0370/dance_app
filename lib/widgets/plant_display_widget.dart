@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../plant_avatar.dart';
 import '../provider/plant_avatar_provider.dart';
+import 'plant_monster_widget.dart';
 
 class PlantDisplayWidget extends ConsumerWidget {
   const PlantDisplayWidget({super.key});
@@ -17,7 +18,6 @@ class PlantDisplayWidget extends ConsumerWidget {
             plant.currentExp);
     final progress = plant.getProgressToNextLevel(
         plant.currentExp);
-    final emoji = plant.getEmoji(plant.currentExp);
 
     return Container(
       margin: const EdgeInsets.all(6),
@@ -47,11 +47,9 @@ class PlantDisplayWidget extends ConsumerWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              emoji,
-              style: const TextStyle(
-                fontSize: 48,
-              ),
+            PlantMonsterWidget(
+              level: currentLevel,
+              size: 110,
             ),
             const SizedBox(height: 12),
             Text(
