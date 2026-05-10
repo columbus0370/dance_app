@@ -13,20 +13,31 @@ class PlantAvatar extends HiveObject {
   @HiveField(2)
   DateTime createdAt = DateTime.now();
 
+  @HiveField(3)
+  int month = 0;
+
+  @HiveField(4)
+  int year = 0;
+
   PlantAvatar({
     int exp = 0,
     int level = 0,
     DateTime? createdAt,
+    int? month,
+    int? year,
   })  : currentExp = exp,
         level = level,
-        createdAt = createdAt ?? DateTime.now();
+        createdAt = createdAt ?? DateTime.now(),
+        month = month ?? DateTime.now().month,
+        year = year ?? DateTime.now().year;
 
   static const List<int> levelThresholds = [
     0,
     600,
     1200,
+    1800,
     2400,
-    4800,
+    3000,
   ];
 
   static const List<String> levelEmojis = [
@@ -35,6 +46,7 @@ class PlantAvatar extends HiveObject {
     '🌿',
     '🌳',
     '🌸',
+    '🌻',
   ];
 
   static const List<String> levelNames = [
@@ -43,6 +55,7 @@ class PlantAvatar extends HiveObject {
     'Young',
     'Mature',
     'Flower',
+    'Full Bloom',
   ];
 
   int getLevel(int exp) {
