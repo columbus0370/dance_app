@@ -87,27 +87,15 @@ class _CalendarPageState
     if (minutes == 0) {
       return const Color(
           0xFF1F2937);
-    } else if (minutes < 15) {
-      return const Color(
-          0xFF0EA5E9);
     } else if (minutes < 30) {
       return const Color(
           0xFF06B6D4);
-    } else if (minutes < 45) {
-      return const Color(
-          0xFF3B82F6);
     } else if (minutes < 60) {
       return const Color(
-          0xFF6366F1);
-    } else if (minutes < 75) {
-      return const Color(
-          0xFF8B5CF6);
+          0xFF3B82F6);
     } else if (minutes < 90) {
       return const Color(
-          0xFFA855F7);
-    } else if (minutes < 105) {
-      return const Color(
-          0xFFD946EF);
+          0xFF8B5CF6);
     } else if (minutes < 120) {
       return const Color(
           0xFFEC4899);
@@ -183,14 +171,10 @@ class _CalendarPageState
 
   Widget _buildColorLegend() {
     final colorSteps = [
-      ('～15分', 0xFF0EA5E9),
-      ('15～30分', 0xFF06B6D4),
-      ('30～45分', 0xFF3B82F6),
-      ('45～60分', 0xFF6366F1),
-      ('60～75分', 0xFF8B5CF6),
-      ('75～90分', 0xFFA855F7),
-      ('90～105分', 0xFFD946EF),
-      ('105～120分',
+      ('～30分', 0xFF06B6D4),
+      ('30～60分', 0xFF3B82F6),
+      ('60～90分', 0xFF8B5CF6),
+      ('90～120分',
           0xFFEC4899),
       ('120分～', 0xFFEF4444),
     ];
