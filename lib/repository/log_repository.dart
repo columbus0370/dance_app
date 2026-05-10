@@ -17,8 +17,22 @@ class LogRepository {
   }
 
   List<Log> getLogs() {
-    final logs = box.values.toList();
-    logs.sort((a, b) => b.date.compareTo(a.date));
-    return logs;
+    final entries =
+        box.entries.toList();
+
+    entries.sort((a, b) {
+      final dateCompare =
+          b.value.date.compareTo(
+              a.value.date);
+      if (dateCompare != 0) {
+        return dateCompare;
+      }
+      return b.key.compareTo(
+          a.key);
+    });
+
+    return entries
+        .map((e) => e.value)
+        .toList();
   }
 }
