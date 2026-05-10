@@ -44,8 +44,10 @@ jobs:
           fi
 
       - name: Deploy to Staging
-        uses: peaceiris/actions-gh-pages@v4
+        uses: peaceiris/actions-gh-pages@v4.3.4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: build/web
           destination_dir: staging
+          cname: ""
+          force_orphan: false
