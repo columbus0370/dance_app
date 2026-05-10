@@ -109,9 +109,12 @@ class VideoStorageService {
     final tx = _database!.transaction(_storeName.toJS, 'readwrite');
     final request = tx.objectStore(_storeName).put(blob, key.toJS);
 
-    request.onsuccess = (web.Event _) => completer.complete().toJS;
-    request.onerror = (web.Event _) =>
-        completer.completeError(Exception('動画の保存に失敗しました')).toJS;
+    request.onsuccess = (web.Event _) {
+      completer.complete();
+    }.toJS;
+    request.onerror = (web.Event _) {
+      completer.completeError(Exception('動画の保存に失敗しました'));
+    }.toJS;
 
     return completer.future;
   }

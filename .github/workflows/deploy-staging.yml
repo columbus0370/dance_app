@@ -31,7 +31,7 @@ jobs:
         run: flutter pub get
 
       - name: Build web
-        run: flutter build web --release --base-href /dance_app/staging/
+        run: flutter build web --release --base-href /dance_app/staging/ -v 2>&1 | tail -80
 
       - name: Verify build artifacts
         run: ls -la build/web
