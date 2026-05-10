@@ -21,47 +21,57 @@ class LogDetailPage extends ConsumerStatefulWidget {
 }
 
 class _LogDetailPageState extends ConsumerState<LogDetailPage> {
-  bool _isOpeningVideo = false;
+  // モバイルブラウザは await 後の window.open をブロックするため、
+  // ページ表示時に Blob URL を事前取得しておき、タップ時に同期で開く。
+  bool _isPreloading = false;
+  String? _blobUrl;
 
-  Future<void> _openVideo(String videoValue) async {
-    if (_isOpeningVideo) return;
-    setState(() => _isOpeningVideo = true);
+  @override
+  void initState() {
+    super.initState();
+    _preloadBlobUrl();
+  }
 
+  @override
+  void dispose() {
+    if (_blobUrl != null) {
+      VideoStorageService.revokeBlobUrl(_blobUrl!);
+    }
+    super.dispose();
+  }
+
+  Future<void> _preloadBlobUrl() async {
+    final url = widget.log.videoUrl;
+    if (url.isEmpty || !VideoStorageService.isStoredKey(url)) return;
+
+    setState(() => _isPreloading = true);
     try {
-      if (VideoStorageService.isStoredKey(videoValue)) {
-        // IndexedDB のキーから Blob URL を生成して開く
-        await VideoStorageService.initialize();
-        final blobUrl = await VideoStorageService.createBlobUrlFromKey(videoValue);
-
-        if (blobUrl == null) {
-          if (!mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('動画が見つかりませんでした')),
-          );
-          return;
-        }
-
-        // 新しいタブで開く
-        VideoStorageService.openVideoInNewTab(blobUrl);
-
-        // 使用後に URL を解放
-        Future.delayed(const Duration(seconds: 5), () {
-          VideoStorageService.revokeBlobUrl(blobUrl);
-        });
-      } else {
-        // 通常の URL（外部リンク）として開く
-        final uri = Uri.parse(videoValue);
-        if (await canLaunchUrl(uri)) {
-          await launchUrl(uri);
-        }
-      }
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('動画を開けませんでした: $e')),
-      );
+      await VideoStorageService.initialize();
+      final blob = await VideoStorageService.createBlobUrlFromKey(url);
+      if (mounted) setState(() => _blobUrl = blob);
+    } catch (_) {
+      // 事前取得失敗時はボタン押下時にエラー表示
     } finally {
-      if (mounted) setState(() => _isOpeningVideo = false);
+      if (mounted) setState(() => _isPreloading = false);
+    }
+  }
+
+  // 同期メソッド：ユーザーアクション内で呼ばれるため window.open がモバイルでもブロックされない
+  void _openVideo() {
+    final url = widget.log.videoUrl;
+    if (url.isEmpty) return;
+
+    if (VideoStorageService.isStoredKey(url)) {
+      if (_blobUrl == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('動画が見つかりませんでした')),
+        );
+        return;
+      }
+      VideoStorageService.openVideoInNewTab(_blobUrl!);
+    } else {
+      final uri = Uri.parse(url);
+      launchUrl(uri);
     }
   }
 
@@ -177,10 +187,10 @@ class _LogDetailPageState extends ConsumerState<LogDetailPage> {
                   ),
                   onPressed: widget.log.videoUrl.isEmpty
                       ? null
-                      : _isOpeningVideo
+                      : _isPreloading
                           ? null
-                          : () => _openVideo(widget.log.videoUrl),
-                  icon: _isOpeningVideo
+                          : _openVideo,
+                  icon: _isPreloading
                       ? const SizedBox(
                           width: 18,
                           height: 18,
@@ -190,7 +200,7 @@ class _LogDetailPageState extends ConsumerState<LogDetailPage> {
                           ),
                         )
                       : const Icon(Icons.play_arrow),
-                  label: Text(_isOpeningVideo ? '読み込み中...' : '動画を開く'),
+                  label: Text(_isPreloading ? '読み込み中...' : '動画を開く'),
                 ),
               ],
             ),
