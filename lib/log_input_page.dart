@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import 'log.dart';
 import 'log_list_page.dart';
 import 'calendar_page.dart';
+import 'help_page.dart';
+import 'provider/plant_avatar_provider.dart';
+import 'widgets/plant_display_widget.dart';
 
-class LogInputPage extends StatefulWidget {
+class LogInputPage extends ConsumerStatefulWidget {
   final Log? editLog;
 
   const LogInputPage({
@@ -14,12 +18,12 @@ class LogInputPage extends StatefulWidget {
   });
 
   @override
-  State<LogInputPage> createState() =>
+  ConsumerState<LogInputPage> createState() =>
       _LogInputPageState();
 }
 
 class _LogInputPageState
-    extends State<LogInputPage> {
+    extends ConsumerState<LogInputPage> {
   DateTime selectedDate =
       DateTime.now();
 
@@ -149,6 +153,14 @@ class _LogInputPageState
     return streak;
   }
 
+  int countVideoUploads() {
+    return box.values
+        .where((log) =>
+            log.videoUrl
+                .isNotEmpty)
+        .length;
+  }
+
   List<Log> getRecentLogs() {
     final logs =
         box.values.toList();
@@ -178,14 +190,17 @@ class _LogInputPageState
 
   void saveLog() async {
     try {
+      final practiceMinutes =
+          int.tryParse(
+                timeController
+                    .text,
+              ) ??
+              0;
+
       final log = Log(
         date: selectedDate,
         practiceMinutes:
-            int.tryParse(
-                  timeController
-                      .text,
-                ) ??
-                0,
+            practiceMinutes,
         memo:
             memoController.text,
         tags:
@@ -205,6 +220,25 @@ class _LogInputPageState
         Navigator.pop(context);
       } else {
         await box.add(log);
+
+        final plant = ref
+            .read(
+            plantAvatarProvider
+                .notifier)
+            .state;
+
+        await ref
+            .read(
+                plantAvatarProvider
+                    .notifier)
+            .addExp(
+          practiceMinutes:
+              practiceMinutes,
+          streakDays:
+              getStreakDays(),
+          videoUploads:
+              countVideoUploads(),
+        );
 
         if (!mounted) return;
 
@@ -286,6 +320,8 @@ class _LogInputPageState
               const EdgeInsets
                   .all(18),
           child: Column(
+            mainAxisSize:
+                MainAxisSize.min,
             children: [
               Icon(
                 icon,
@@ -378,6 +414,21 @@ class _LogInputPageState
               );
             },
           ),
+          IconButton(
+            color:
+                Colors.greenAccent,
+            icon: const Icon(
+                Icons.help_outline),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) =>
+                      const HelpPage(),
+                ),
+              );
+            },
+          ),
         ],
       ),
       body: Container(
@@ -420,10 +471,11 @@ class _LogInputPageState
                       3,
                 ),
               ),
-
               const SizedBox(
                   height: 18),
-
+              const PlantDisplayWidget(),
+              const SizedBox(
+                  height: 18),
               Row(
                 children: [
                   neonCard(
@@ -444,19 +496,19 @@ class _LogInputPageState
                   ),
                 ],
               ),
-
-              neonCard(
-                icon: Icons
-                    .bolt,
-                title:
-                    'STREAK',
-                value:
-                    '${getStreakDays()}日',
+              Row(
+                children: [
+                  neonCard(
+                    icon: Icons.bolt,
+                    title:
+                        'STREAK',
+                    value:
+                        '${getStreakDays()}日',
+                  ),
+                ],
               ),
-
               const SizedBox(
                   height: 20),
-
               Card(
                 color: const Color(
                     0xFF111827),
@@ -465,6 +517,9 @@ class _LogInputPageState
                       const EdgeInsets
                           .all(16),
                   child: Column(
+                    mainAxisSize:
+                        MainAxisSize
+                            .min,
                     crossAxisAlignment:
                         CrossAxisAlignment
                             .start,
@@ -498,10 +553,8 @@ class _LogInputPageState
                   ),
                 ),
               ),
-
               const SizedBox(
                   height: 20),
-
               GestureDetector(
                 onTap: () async {
                   final picked =
@@ -536,8 +589,9 @@ class _LogInputPageState
                         color: Colors
                             .cyan),
                     borderRadius:
-                        BorderRadius.circular(
-                            14),
+                        BorderRadius
+                            .circular(
+                                14),
                   ),
                   child: Row(
                     mainAxisAlignment:
@@ -567,10 +621,8 @@ class _LogInputPageState
                   ),
                 ),
               ),
-
               const SizedBox(
                   height: 16),
-
               TextField(
                 controller:
                     timeController,
@@ -589,10 +641,8 @@ class _LogInputPageState
                       OutlineInputBorder(),
                 ),
               ),
-
               const SizedBox(
                   height: 12),
-
               Wrap(
                 spacing: 8,
                 children: [
@@ -617,10 +667,8 @@ class _LogInputPageState
                     )
                     .toList(),
               ),
-
               const SizedBox(
                   height: 12),
-
               TextField(
                 controller:
                     memoController,
@@ -636,10 +684,8 @@ class _LogInputPageState
                       OutlineInputBorder(),
                 ),
               ),
-
               const SizedBox(
                   height: 12),
-
               TextField(
                 controller:
                     tagController,
@@ -656,7 +702,6 @@ class _LogInputPageState
                       'タグ',
                 ),
               ),
-
               Wrap(
                 spacing: 8,
                 children: tags
@@ -669,10 +714,8 @@ class _LogInputPageState
                     )
                     .toList(),
               ),
-
               const SizedBox(
                   height: 12),
-
               TextField(
                 controller:
                     urlController,
@@ -688,7 +731,6 @@ class _LogInputPageState
                       OutlineInputBorder(),
                 ),
               ),
-
               const SizedBox(
                   height: 80),
             ],
