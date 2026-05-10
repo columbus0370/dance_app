@@ -13,15 +13,27 @@ class LogListPage
 
   Color getCardColor(
       int minutes) {
-    if (minutes < 30) {
+    if (minutes < 15) {
+      return const Color(
+          0xFF0EA5E9);
+    } else if (minutes < 30) {
       return const Color(
           0xFF06B6D4);
-    } else if (minutes < 60) {
+    } else if (minutes < 45) {
       return const Color(
           0xFF3B82F6);
-    } else if (minutes < 90) {
+    } else if (minutes < 60) {
+      return const Color(
+          0xFF6366F1);
+    } else if (minutes < 75) {
       return const Color(
           0xFF8B5CF6);
+    } else if (minutes < 90) {
+      return const Color(
+          0xFFA855F7);
+    } else if (minutes < 105) {
+      return const Color(
+          0xFFD946EF);
     } else if (minutes < 120) {
       return const Color(
           0xFFEC4899);
