@@ -1,8 +1,6 @@
-import 'dart:js_interop';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:web/web.dart' as web;
 
 import 'log.dart';
 import 'log_input_page.dart';
@@ -44,9 +42,9 @@ class _LogDetailPageState extends ConsumerState<LogDetailPage> {
         }
 
         // 新しいタブで開く
-        web.window.open(blobUrl, '_blank', ''.toJS);
+        VideoStorageService.openVideoInNewTab(blobUrl);
 
-        // 使用後に URL を解放（少し遅延させてブラウザが読み込めるようにする）
+        // 使用後に URL を解放
         Future.delayed(const Duration(seconds: 5), () {
           VideoStorageService.revokeBlobUrl(blobUrl);
         });

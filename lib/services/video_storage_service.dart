@@ -48,7 +48,6 @@ class VideoStorageService {
 
   /// 動画ファイルを選択・長さチェック・IndexedDB 保存
   /// returns: (idbKey, duration_seconds) または null
-  /// idbKey を log.videoUrl に保存することで、セッション間でも動画を取得できる
   static Future<(String idbKey, double duration)?> selectAndStoreVideo() async {
     final result = await FilePicker.platform.pickFiles(
       type: FileType.video,
@@ -60,11 +59,17 @@ class VideoStorageService {
     final bytes = result.files.first.bytes;
     if (bytes == null) throw Exception('動画ファイルの読み込みに失敗しました');
 
-    final blob = web.Blob([bytes.toJS].toJS);
+    // Uint8List → JSUint8Array → Blob
+    final jsArray = bytes.buffer.toJS;
+    final blob = web.Blob([jsArray].toJS);
     final tempUrl = web.URL.createObjectURL(blob);
 
-    final duration = await _getVideoDuration(tempUrl);
-    web.URL.revokeObjectURL(tempUrl);
+    double duration;
+    try {
+      duration = await _getVideoDuration(tempUrl);
+    } finally {
+      web.URL.revokeObjectURL(tempUrl);
+    }
 
     if (duration > _maxSeconds) {
       throw Exception(
@@ -79,8 +84,7 @@ class VideoStorageService {
     return (key, duration);
   }
 
-  /// IndexedDB のキーから Blob URL を生成して返す
-  /// 詳細画面などで動画を開く際に使用
+  /// IndexedDB のキーから Blob URL を生成
   static Future<String?> createBlobUrlFromKey(String key) async {
     if (_database == null) return null;
 
@@ -89,11 +93,11 @@ class VideoStorageService {
     final request = tx.objectStore(_storeName).get(key.toJS);
 
     request.onsuccess = (web.Event event) {
-      final result = (event.target as web.IDBRequest).result;
-      if (result == null || result.isUndefinedOrNull) {
+      final jsResult = (event.target as web.IDBRequest).result;
+      if (jsResult.isUndefined || jsResult.isNull) {
         completer.complete(null);
       } else {
-        final blob = result as web.Blob;
+        final blob = jsResult as web.Blob;
         completer.complete(web.URL.createObjectURL(blob));
       }
     }.toJS;
@@ -105,6 +109,11 @@ class VideoStorageService {
     return completer.future;
   }
 
+  /// 新しいタブで動画を開く
+  static void openVideoInNewTab(String blobUrl) {
+    web.window.open(blobUrl, '_blank');
+  }
+
   /// キーが IndexedDB のキーかどうか判定
   static bool isStoredKey(String value) => value.startsWith('video_');
 
@@ -113,7 +122,7 @@ class VideoStorageService {
     final video = web.HTMLVideoElement();
 
     video.onloadedmetadata = (web.Event _) {
-      completer.complete(video.duration);
+      if (!completer.isCompleted) completer.complete(video.duration);
     }.toJS;
 
     video.onerror = (web.Event _) {
