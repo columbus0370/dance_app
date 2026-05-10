@@ -31,6 +31,12 @@ dependencies:
   # 動画再生（要件にあるので追加してOK）
   video_player: ^2.9.2
 
+  # ファイル選択
+  file_picker: ^8.1.0
+
+  # Web API アクセス（package:web 使用）
+  web: ^1.1.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

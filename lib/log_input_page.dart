@@ -11,6 +11,7 @@ import 'provider/log_provider.dart';
 import 'provider/plant_avatar_provider.dart';
 import 'widgets/plant_display_widget.dart';
 import 'widgets/level_up_dialog.dart';
+import 'services/video_storage_service.dart';
 
 class LogInputPage extends ConsumerStatefulWidget {
   final Log? editLog;
@@ -40,6 +41,9 @@ class _LogInputPageState
       TextEditingController();
 
   List<String> tags = [];
+  String? selectedVideoUrl;
+  double? selectedVideoDuration;
+  bool isLoadingVideo = false;
 
   Box<Log> get box =>
       Hive.box<Log>('logs');
@@ -47,6 +51,8 @@ class _LogInputPageState
   @override
   void initState() {
     super.initState();
+
+    _initializeVideoService();
 
     if (widget.editLog != null) {
       final log =
@@ -60,8 +66,21 @@ class _LogInputPageState
           log.memo;
       urlController.text =
           log.videoUrl;
+      selectedVideoUrl =
+          log.videoUrl;
       tags = List.from(
         log.tags,
+      );
+    }
+  }
+
+  Future<void> _initializeVideoService() async {
+    try {
+      await VideoStorageService.initialize();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('動画機能の初期化に失敗しました: $e')),
       );
     }
   }
@@ -191,6 +210,56 @@ class _LogInputPageState
     });
   }
 
+  Future<void> _selectVideo() async {
+    setState(() {
+      isLoadingVideo = true;
+    });
+
+    try {
+      final result = await VideoStorageService.selectAndStoreVideo();
+
+      if (!mounted) return;
+
+      if (result != null) {
+        setState(() {
+          selectedVideoUrl = result.$1;
+          selectedVideoDuration = result.$2;
+          urlController.text = result.$1;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '動画をアップロードしました (${selectedVideoDuration!.toStringAsFixed(1)}秒)',
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('エラー: $e'),
+          backgroundColor: Colors.red[700],
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          isLoadingVideo = false;
+        });
+      }
+    }
+  }
+
+  void _clearVideo() {
+    setState(() {
+      selectedVideoUrl = null;
+      selectedVideoDuration = null;
+      urlController.clear();
+    });
+  }
+
   void saveLog() async {
     try {
       final practiceMinutes =
@@ -311,8 +380,9 @@ class _LogInputPageState
 
         setState(() {
           tags.clear();
-          selectedDate =
-              DateTime.now();
+          selectedDate = DateTime.now();
+          selectedVideoUrl = null;
+          selectedVideoDuration = null;
         });
       }
     } catch (e) {
@@ -782,21 +852,120 @@ class _LogInputPageState
               ),
               const SizedBox(
                   height: 12),
-              TextField(
-                controller:
-                    urlController,
-                style:
-                    const TextStyle(
-                        color: Colors
-                            .white),
-                decoration:
-                    const InputDecoration(
-                  labelText:
-                      '動画URL',
-                  border:
-                      OutlineInputBorder(),
+              Text(
+                '🎬 動画アップロード',
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight:
+                      FontWeight.bold,
+                  color: Colors.white,
                 ),
               ),
+              const SizedBox(
+                  height: 8),
+              if (selectedVideoUrl ==
+                  null)
+                ElevatedButton.icon(
+                  onPressed:
+                      isLoadingVideo
+                          ? null
+                          : _selectVideo,
+                  icon: isLoadingVideo
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child:
+                              CircularProgressIndicator(
+                            strokeWidth:
+                                2,
+                            valueColor:
+                                AlwaysStoppedAnimation<
+                                    Color>(
+                                  Colors
+                                      .white,
+                                ),
+                          ),
+                        )
+                      : const Icon(Icons
+                          .video_camera_back),
+                  label: Text(
+                    isLoadingVideo
+                        ? '読み込み中...'
+                        : 'ファイルを選択\n(最大90秒)',
+                  ),
+                  style:
+                      ElevatedButton
+                          .styleFrom(
+                    backgroundColor:
+                        const Color(
+                            0xFF9D4EDD),
+                    minimumSize:
+                        const Size(
+                            double.infinity,
+                            50),
+                  ),
+                )
+              else
+                Container(
+                  padding:
+                      const EdgeInsets
+                          .all(12),
+                  decoration:
+                      BoxDecoration(
+                    border:
+                        Border.all(
+                      color: const Color(
+                          0xFFFF4FD8),
+                      width: 2,
+                    ),
+                    borderRadius:
+                        BorderRadius
+                            .circular(
+                                12),
+                  ),
+                  child: Column(
+                    crossAxisAlignment:
+                        CrossAxisAlignment
+                            .start,
+                    children: [
+                      const Text(
+                        '✅ 動画が選択されました',
+                        style: TextStyle(
+                          color: Color(
+                              0xFFFF4FD8),
+                          fontWeight:
+                              FontWeight
+                                  .bold,
+                        ),
+                      ),
+                      const SizedBox(
+                          height: 8),
+                      Text(
+                        '長さ: ${selectedVideoDuration!.toStringAsFixed(1)}秒',
+                        style:
+                            const TextStyle(
+                          color: Colors
+                              .white70,
+                          fontSize: 12,
+                        ),
+                      ),
+                      const SizedBox(
+                          height: 12),
+                      TextButton(
+                        onPressed:
+                            _clearVideo,
+                        child:
+                            const Text(
+                          '別の動画を選択',
+                          style: TextStyle(
+                            color: Color(
+                                0xFFFF4FD8),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               const SizedBox(
                   height: 80),
             ],
