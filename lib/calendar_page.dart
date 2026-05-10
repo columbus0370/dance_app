@@ -87,15 +87,27 @@ class _CalendarPageState
     if (minutes == 0) {
       return const Color(
           0xFF1F2937);
+    } else if (minutes < 15) {
+      return const Color(
+          0xFF0EA5E9);
     } else if (minutes < 30) {
       return const Color(
           0xFF06B6D4);
-    } else if (minutes < 60) {
+    } else if (minutes < 45) {
       return const Color(
           0xFF3B82F6);
-    } else if (minutes < 90) {
+    } else if (minutes < 60) {
+      return const Color(
+          0xFF6366F1);
+    } else if (minutes < 75) {
       return const Color(
           0xFF8B5CF6);
+    } else if (minutes < 90) {
+      return const Color(
+          0xFFA855F7);
+    } else if (minutes < 105) {
+      return const Color(
+          0xFFD946EF);
     } else if (minutes < 120) {
       return const Color(
           0xFFEC4899);
@@ -165,6 +177,96 @@ class _CalendarPageState
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildColorLegend() {
+    final colorSteps = [
+      ('～15分', 0xFF0EA5E9),
+      ('15～30分', 0xFF06B6D4),
+      ('30～45分', 0xFF3B82F6),
+      ('45～60分', 0xFF6366F1),
+      ('60～75分', 0xFF8B5CF6),
+      ('75～90分', 0xFFA855F7),
+      ('90～105分', 0xFFD946EF),
+      ('105～120分',
+          0xFFEC4899),
+      ('120分～', 0xFFEF4444),
+    ];
+
+    return Container(
+      padding:
+          const EdgeInsets.all(
+              12),
+      decoration:
+          BoxDecoration(
+        color: const Color(
+            0xFF111827),
+        borderRadius:
+            BorderRadius
+                .circular(12),
+        border: Border.all(
+          color: Colors.cyan,
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment:
+            CrossAxisAlignment
+                .start,
+        children: [
+          const Text(
+            '練習時間の色分け',
+            style: TextStyle(
+              color: Colors.cyan,
+              fontSize: 12,
+              fontWeight:
+                  FontWeight.bold,
+            ),
+          ),
+          const SizedBox(
+              height: 8),
+          Wrap(
+            spacing: 12,
+            runSpacing: 8,
+            children: colorSteps
+                .map(
+                  (step) => Row(
+                    mainAxisSize:
+                        MainAxisSize
+                            .min,
+                    children: [
+                      Container(
+                        width: 16,
+                        height: 16,
+                        decoration:
+                            BoxDecoration(
+                          color: Color(
+                              step.$2),
+                          borderRadius:
+                              BorderRadius
+                                  .circular(
+                                      3),
+                        ),
+                      ),
+                      const SizedBox(
+                          width: 6),
+                      Text(
+                        step.$1,
+                        style:
+                            const TextStyle(
+                          color: Colors
+                              .white70,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+                .toList(),
+          ),
+        ],
       ),
     );
   }
@@ -329,6 +431,9 @@ class _CalendarPageState
                         ),
                       ),
                     ),
+                    const SizedBox(
+                        height: 20),
+                    _buildColorLegend(),
                     const SizedBox(
                         height: 20),
                     SizedBox(
