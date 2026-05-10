@@ -56,12 +56,20 @@ class VideoStorageService {
 
     if (result == null || result.files.isEmpty) return null;
 
-    final bytes = result.files.first.bytes;
+    final file = result.files.first;
+    final bytes = file.bytes;
     if (bytes == null) throw Exception('動画ファイルの読み込みに失敗しました');
 
-    // Uint8List → JSUint8Array → Blob
+    // 拡張子から MIME タイプを判定（未指定時は video/mp4 をデフォルト）
+    final ext = (file.extension ?? 'mp4').toLowerCase();
+    final mimeType = _mimeTypeFromExtension(ext);
+
+    // Uint8List → ArrayBuffer → Blob（MIME タイプ付き）
     final jsArray = bytes.buffer.toJS;
-    final blob = web.Blob([jsArray].toJS);
+    final blob = web.Blob(
+      [jsArray].toJS,
+      web.BlobPropertyBag(type: mimeType),
+    );
     final tempUrl = web.URL.createObjectURL(blob);
 
     double duration;
@@ -116,6 +124,18 @@ class VideoStorageService {
 
   /// キーが IndexedDB のキーかどうか判定
   static bool isStoredKey(String value) => value.startsWith('video_');
+
+  static String _mimeTypeFromExtension(String ext) {
+    switch (ext) {
+      case 'mp4':  return 'video/mp4';
+      case 'webm': return 'video/webm';
+      case 'mov':  return 'video/quicktime';
+      case 'avi':  return 'video/x-msvideo';
+      case 'mkv':  return 'video/x-matroska';
+      case 'ogv':  return 'video/ogg';
+      default:     return 'video/mp4';
+    }
+  }
 
   static Future<double> _getVideoDuration(String url) async {
     final completer = Completer<double>();
