@@ -47,7 +47,9 @@ class VideoStorageService {
   }
 
   /// 動画ファイルを選択・長さチェック・IndexedDB 保存
-  static Future<(String blobUrl, double duration)?> selectAndStoreVideo() async {
+  /// returns: (idbKey, duration_seconds) または null
+  /// idbKey を log.videoUrl に保存することで、セッション間でも動画を取得できる
+  static Future<(String idbKey, double duration)?> selectAndStoreVideo() async {
     final result = await FilePicker.platform.pickFiles(
       type: FileType.video,
       allowMultiple: false,
@@ -59,23 +61,52 @@ class VideoStorageService {
     if (bytes == null) throw Exception('動画ファイルの読み込みに失敗しました');
 
     final blob = web.Blob([bytes.toJS].toJS);
-    final url = web.URL.createObjectURL(blob);
+    final tempUrl = web.URL.createObjectURL(blob);
 
-    final duration = await _getVideoDuration(url);
+    final duration = await _getVideoDuration(tempUrl);
+    web.URL.revokeObjectURL(tempUrl);
 
     if (duration > _maxSeconds) {
-      web.URL.revokeObjectURL(url);
       throw Exception(
         '動画は${_maxSeconds}秒以内にしてください\n'
         '（選択した動画: ${duration.toStringAsFixed(1)}秒）',
       );
     }
 
-    final key = DateTime.now().millisecondsSinceEpoch.toString();
+    final key = 'video_${DateTime.now().millisecondsSinceEpoch}';
     await _storeBlob(key, blob);
 
-    return (url, duration);
+    return (key, duration);
   }
+
+  /// IndexedDB のキーから Blob URL を生成して返す
+  /// 詳細画面などで動画を開く際に使用
+  static Future<String?> createBlobUrlFromKey(String key) async {
+    if (_database == null) return null;
+
+    final completer = Completer<String?>();
+    final tx = _database!.transaction(_storeName.toJS, 'readonly');
+    final request = tx.objectStore(_storeName).get(key.toJS);
+
+    request.onsuccess = (web.Event event) {
+      final result = (event.target as web.IDBRequest).result;
+      if (result == null || result.isUndefinedOrNull) {
+        completer.complete(null);
+      } else {
+        final blob = result as web.Blob;
+        completer.complete(web.URL.createObjectURL(blob));
+      }
+    }.toJS;
+
+    request.onerror = (web.Event _) {
+      completer.complete(null);
+    }.toJS;
+
+    return completer.future;
+  }
+
+  /// キーが IndexedDB のキーかどうか判定
+  static bool isStoredKey(String value) => value.startsWith('video_');
 
   static Future<double> _getVideoDuration(String url) async {
     final completer = Completer<double>();
