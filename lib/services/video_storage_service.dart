@@ -117,9 +117,19 @@ class VideoStorageService {
     return completer.future;
   }
 
-  /// 新しいタブで動画を開く
+  /// 新しいタブで動画を開く（モバイル対応: <a> 要素クリック方式）
   static void openVideoInNewTab(String blobUrl) {
-    web.window.open(blobUrl, '_blank');
+    final anchor = web.HTMLAnchorElement();
+    anchor.href = blobUrl;
+    anchor.target = '_blank';
+    final body = web.document.body;
+    if (body != null) {
+      body.appendChild(anchor);
+      anchor.click();
+      body.removeChild(anchor);
+    } else {
+      anchor.click();
+    }
   }
 
   /// キーが IndexedDB のキーかどうか判定
