@@ -383,8 +383,9 @@ class _LogInputPageState
 
         setState(() {
           tags.clear();
-          selectedDate =
-              DateTime.now();
+          selectedDate = DateTime.now();
+          selectedVideoUrl = null;
+          selectedVideoDuration = null;
         });
       }
     } catch (e) {
