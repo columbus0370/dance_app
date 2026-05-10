@@ -15,19 +15,19 @@ class LogListPage
       int minutes) {
     if (minutes < 30) {
       return const Color(
-          0xFF67E8F9);
+          0xFF06B6D4);
     } else if (minutes < 60) {
       return const Color(
-          0xFF0EA5E9);
+          0xFF3B82F6);
     } else if (minutes < 90) {
       return const Color(
-          0xFFA78BFA);
+          0xFF8B5CF6);
     } else if (minutes < 120) {
       return const Color(
           0xFFEC4899);
     } else {
       return const Color(
-          0xFFDC2626);
+          0xFFEF4444);
     }
   }
 
