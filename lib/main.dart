@@ -3,15 +3,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import 'log.dart';
+import 'plant_avatar.dart';
 import 'log_input_page.dart';
-import 'splash_page.dart'; // ← ここが重要（lib直下）
+import 'splash_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await Hive.initFlutter();
   Hive.registerAdapter(LogAdapter());
+  Hive.registerAdapter(PlantAvatarAdapter());
   await Hive.openBox<Log>('logs');
+  await Hive.openBox<PlantAvatar>(
+      'plant_avatars');
 
   runApp(
     const ProviderScope(
