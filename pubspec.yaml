@@ -32,10 +32,7 @@ dependencies:
   video_player: ^2.9.2
 
   # ファイル選択
-  file_picker: ^8.1.0
-
-  # Web API アクセス
-  web: ^1.1.1
+  file_picker: ^8.0.7
 
 dev_dependencies:
   flutter_test:
