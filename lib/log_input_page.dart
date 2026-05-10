@@ -6,8 +6,10 @@ import 'log.dart';
 import 'log_list_page.dart';
 import 'calendar_page.dart';
 import 'help_page.dart';
+import 'plant_gallery_page.dart';
 import 'provider/plant_avatar_provider.dart';
 import 'widgets/plant_display_widget.dart';
+import 'widgets/level_up_dialog.dart';
 
 class LogInputPage extends ConsumerStatefulWidget {
   final Log? editLog;
@@ -221,16 +223,12 @@ class _LogInputPageState
       } else {
         await box.add(log);
 
-        final plant = ref
-            .read(
-            plantAvatarProvider
-                .notifier)
-            .state;
-
-        await ref
-            .read(
+        final plantNotifier =
+            ref.read(
                 plantAvatarProvider
-                    .notifier)
+                    .notifier);
+
+        await plantNotifier
             .addExp(
           practiceMinutes:
               practiceMinutes,
@@ -241,6 +239,33 @@ class _LogInputPageState
         );
 
         if (!mounted) return;
+
+        final levelUpDiff =
+            plantNotifier
+                .getLevelUpDifference();
+
+        if (levelUpDiff != null &&
+            levelUpDiff > 0) {
+          final plant = ref.read(
+              plantAvatarProvider);
+          showDialog(
+            context: context,
+            barrierDismissible:
+                false,
+            builder: (context) =>
+                LevelUpDialog(
+              newLevel: plant.level +
+                  1,
+              emoji: plant.getEmoji(
+                  plant.currentExp),
+              levelName:
+                  plant.getName(
+                      plant.currentExp),
+            ),
+          );
+          plantNotifier
+              .resetLevelUpFlag();
+        }
 
         FocusScope.of(context)
             .unfocus();
@@ -425,6 +450,21 @@ class _LogInputPageState
                 MaterialPageRoute(
                   builder: (_) =>
                       const HelpPage(),
+                ),
+              );
+            },
+          ),
+          IconButton(
+            color:
+                Colors.orangeAccent,
+            icon: const Icon(
+                Icons.image),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) =>
+                      const PlantGalleryPage(),
                 ),
               );
             },

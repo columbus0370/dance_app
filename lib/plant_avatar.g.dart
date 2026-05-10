@@ -20,19 +20,25 @@ class PlantAvatarAdapter extends TypeAdapter<PlantAvatar> {
       exp: fields[0] as int? ?? 0,
       level: fields[1] as int? ?? 0,
       createdAt: fields[2] as DateTime?,
+      month: fields[3] as int? ?? DateTime.now().month,
+      year: fields[4] as int? ?? DateTime.now().year,
     );
   }
 
   @override
   void write(BinaryWriter writer, PlantAvatar obj) {
     writer
-      ..writeByte(3)
+      ..writeByte(5)
       ..writeByte(0)
       ..write(obj.currentExp)
       ..writeByte(1)
       ..write(obj.level)
       ..writeByte(2)
-      ..write(obj.createdAt);
+      ..write(obj.createdAt)
+      ..writeByte(3)
+      ..write(obj.month)
+      ..writeByte(4)
+      ..write(obj.year);
   }
 
   @override
