@@ -1,6 +1,9 @@
-# dance_app
+# GrooveTracker (dance_app)
 
-A new Flutter project.
+A Flutter-based dance practice tracking app with plant growth gamification.
+
+**Staging**: https://columbus0370.github.io/dance_app/staging/  
+**Production**: https://columbus0370.github.io/dance_app/
 
 ## Getting Started
 
