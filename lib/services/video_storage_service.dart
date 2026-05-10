@@ -1,125 +1,124 @@
 import 'dart:async';
-import 'dart:html' as html;
-import 'dart:typed_data';
+import 'dart:js_interop';
+import 'package:web/web.dart' as web;
 import 'package:file_picker/file_picker.dart';
 
 class VideoStorageService {
+  static const int _maxSeconds = 90;
   static const String _dbName = 'dance_app_videos';
   static const String _storeName = 'videos';
   static const int _dbVersion = 1;
-  static const Duration _maxVideoDuration = Duration(seconds: 90);
 
-  static late html.IDBDatabase _database;
+  static web.IDBDatabase? _database;
   static bool _initialized = false;
 
-  /// IndexedDB を初期化
   static Future<void> initialize() async {
     if (_initialized) return;
 
-    final request = html.window.indexedDB!.open(_dbName, _dbVersion);
+    final completer = Completer<web.IDBDatabase>();
+    final request = web.window.indexedDB.open(_dbName, _dbVersion);
 
-    request.onUpgradeNeeded.listen((event) {
-      final db = (event.target as html.IDBOpenDBRequest).result as html.IDBDatabase;
-      if (!db.objectStoreNames!.contains(_storeName)) {
-        db.createObjectStore(_storeName);
+    request.onupgradeneeded = (web.IDBVersionChangeEvent event) {
+      final db =
+          (event.target as web.IDBOpenDBRequest).result as web.IDBDatabase;
+      bool exists = false;
+      final names = db.objectStoreNames;
+      for (int i = 0; i < names.length; i++) {
+        if (names.item(i) == _storeName) {
+          exists = true;
+          break;
+        }
       }
-    });
+      if (!exists) db.createObjectStore(_storeName);
+    }.toJS;
 
-    _database = await request.future;
+    request.onsuccess = (web.Event event) {
+      completer.complete(
+        (event.target as web.IDBOpenDBRequest).result as web.IDBDatabase,
+      );
+    }.toJS;
+
+    request.onerror = (web.Event _) {
+      completer.completeError(Exception('IndexedDB の初期化に失敗しました'));
+    }.toJS;
+
+    _database = await completer.future;
     _initialized = true;
   }
 
-  /// 動画ファイルを選択して保存
-  /// returns: (blob_url, duration_in_seconds) または null
+  /// 動画ファイルを選択・長さチェック・IndexedDB 保存
   static Future<(String blobUrl, double duration)?> selectAndStoreVideo() async {
-    try {
-      final result = await FilePicker.platform.pickFiles(
-        type: FileType.video,
-        allowMultiple: false,
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.video,
+      allowMultiple: false,
+    );
+
+    if (result == null || result.files.isEmpty) return null;
+
+    final bytes = result.files.first.bytes;
+    if (bytes == null) throw Exception('動画ファイルの読み込みに失敗しました');
+
+    final blob = web.Blob([bytes.toJS].toJS);
+    final url = web.URL.createObjectURL(blob);
+
+    final duration = await _getVideoDuration(url);
+
+    if (duration > _maxSeconds) {
+      web.URL.revokeObjectURL(url);
+      throw Exception(
+        '動画は${_maxSeconds}秒以内にしてください\n'
+        '（選択した動画: ${duration.toStringAsFixed(1)}秒）',
       );
-
-      if (result == null || result.files.isEmpty) {
-        return null;
-      }
-
-      final file = result.files.first;
-      final bytes = file.bytes;
-
-      if (bytes == null) {
-        throw Exception('動画ファイルの読み込みに失敗しました');
-      }
-
-      // 動画の長さを確認
-      final duration = await _getVideoDuration(bytes);
-
-      if (duration > _maxVideoDuration.inSeconds) {
-        throw Exception(
-          '動画は${_maxVideoDuration.inSeconds}秒以内にしてください\n'
-          '(選択した動画: ${duration.toStringAsFixed(1)}秒)'
-        );
-      }
-
-      // IndexedDB に保存
-      final blob = html.Blob([bytes]);
-      final blobUrl = html.Url.createObjectUrlFromBlob(blob);
-      final timestamp = DateTime.now().millisecondsSinceEpoch;
-
-      await _storeVideoBlob(timestamp.toString(), blob);
-
-      return (blobUrl, duration);
-    } catch (e) {
-      rethrow;
     }
+
+    final key = DateTime.now().millisecondsSinceEpoch.toString();
+    await _storeBlob(key, blob);
+
+    return (url, duration);
   }
 
-  /// 動画の長さを取得（秒）
-  static Future<double> _getVideoDuration(Uint8List bytes) async {
+  static Future<double> _getVideoDuration(String url) async {
     final completer = Completer<double>();
+    final video = web.HTMLVideoElement();
 
-    final blob = html.Blob([bytes]);
-    final url = html.Url.createObjectUrlFromBlob(blob);
+    video.onloadedmetadata = (web.Event _) {
+      completer.complete(video.duration);
+    }.toJS;
 
-    final video = html.VideoElement();
-    video.onLoadedMetadata.listen((_) {
-      completer.complete(video.duration ?? 0.0);
-      html.Url.revokeObjectUrl(url);
-    });
-
-    video.onError.listen((_) {
-      completer.completeError(Exception('動画ファイルが無効です'));
-      html.Url.revokeObjectUrl(url);
-    });
+    video.onerror = (web.Event _) {
+      if (!completer.isCompleted) {
+        completer.completeError(Exception('動画ファイルが無効です'));
+      }
+    }.toJS;
 
     video.src = url;
 
-    // タイムアウト設定
     Future.delayed(const Duration(seconds: 10)).then((_) {
       if (!completer.isCompleted) {
-        completer.completeError(
-          Exception('動画情報の取得がタイムアウトしました')
-        );
-        html.Url.revokeObjectUrl(url);
+        completer.completeError(Exception('動画情報の取得がタイムアウトしました'));
       }
     });
 
     return completer.future;
   }
 
-  /// Blob を IndexedDB に保存
-  static Future<void> _storeVideoBlob(
-    String key,
-    html.Blob blob,
-  ) async {
-    final transaction = _database.transaction(_storeName, 'readwrite');
-    final store = transaction.objectStore(_storeName);
-    await store.put(blob, key).future;
+  static Future<void> _storeBlob(String key, web.Blob blob) async {
+    if (_database == null) throw Exception('IndexedDB が初期化されていません');
+
+    final completer = Completer<void>();
+    final tx = _database!.transaction(_storeName.toJS, 'readwrite');
+    final request = tx.objectStore(_storeName).put(blob, key.toJS);
+
+    request.onsuccess = (web.Event _) => completer.complete().toJS;
+    request.onerror = (web.Event _) =>
+        completer.completeError(Exception('動画の保存に失敗しました')).toJS;
+
+    return completer.future;
   }
 
-  /// Blob URL を削除
-  static void revokeBlobUrl(String blobUrl) {
-    html.Url.revokeObjectUrl(blobUrl);
+  static void revokeBlobUrl(String url) {
+    web.URL.revokeObjectURL(url);
   }
 
-  /// 最大動画時間を取得
-  static Duration get maxVideoDuration => _maxVideoDuration;
+  static int get maxSeconds => _maxSeconds;
 }
