@@ -7,6 +7,7 @@ import 'log_list_page.dart';
 import 'calendar_page.dart';
 import 'help_page.dart';
 import 'plant_gallery_page.dart';
+import 'provider/log_provider.dart';
 import 'provider/plant_avatar_provider.dart';
 import 'widgets/plant_display_widget.dart';
 import 'widgets/level_up_dialog.dart';
@@ -199,29 +200,53 @@ class _LogInputPageState
               ) ??
               0;
 
+      if (practiceMinutes <= 0) {
+        ScaffoldMessenger.of(
+                context)
+            .showSnackBar(
+          const SnackBar(
+            content: Text(
+                '練習時間を入力してください'),
+          ),
+        );
+        return;
+      }
+
+      final tagsCopy =
+          List<String>.from(
+              tags);
+
       final log = Log(
         date: selectedDate,
         practiceMinutes:
             practiceMinutes,
         memo:
             memoController.text,
-        tags:
-            List.from(tags),
+        tags: tagsCopy,
         videoUrl:
             urlController.text,
       );
 
       if (widget.editLog !=
           null) {
-        await box.put(
-          widget.editLog!.key,
-          log,
-        );
+        await ref
+            .read(
+                logListProvider
+                    .notifier)
+            .update(
+              widget.editLog!.key
+                  as int,
+              log,
+            );
 
         if (!mounted) return;
         Navigator.pop(context);
       } else {
-        await box.add(log);
+        await ref
+            .read(
+                logListProvider
+                    .notifier)
+            .add(log);
 
         final plantNotifier =
             ref.read(
@@ -291,6 +316,7 @@ class _LogInputPageState
         });
       }
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(
               context)
           .showSnackBar(
