@@ -88,13 +88,20 @@ class _CalendarPageState
       return const Color(
           0xFF1F2937);
     } else if (minutes < 30) {
-      return Colors.greenAccent;
+      return const Color(
+          0xFF67E8F9);
     } else if (minutes < 60) {
-      return Colors.cyanAccent;
+      return const Color(
+          0xFF0EA5E9);
     } else if (minutes < 90) {
-      return Colors.pinkAccent;
+      return const Color(
+          0xFFA78BFA);
+    } else if (minutes < 120) {
+      return const Color(
+          0xFFEC4899);
     } else {
-      return Colors.deepPurpleAccent;
+      return const Color(
+          0xFFDC2626);
     }
   }
 
