@@ -16,7 +16,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -24,30 +24,21 @@ jobs:
           channel: stable
           cache: true
 
-      - name: Clean Flutter cache
+      - name: Clean Flutter
         run: flutter clean
 
       - name: Install dependencies
         run: flutter pub get
 
       - name: Build web
-        run: flutter build web --release --base-href /dance_app/staging/ -v 2>&1 | tail -100
+        run: flutter build web --release --base-href /dance_app/staging/
 
       - name: Verify build artifacts
-        run: |
-          if [ -d "build/web" ]; then
-            echo "Build directory exists"
-            ls -la build/web | head -20
-          else
-            echo "ERROR: build/web directory not found!"
-            exit 1
-          fi
+        run: ls -la build/web
 
-      - name: Deploy to Staging
+      - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: build/web
           destination_dir: staging
-          cname: ""
-          force_orphan: false
