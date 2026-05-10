@@ -253,9 +253,6 @@ class _LogInputPageState
   }
 
   void _clearVideo() {
-    if (selectedVideoUrl != null) {
-      VideoStorageService.revokeBlobUrl(selectedVideoUrl!);
-    }
     setState(() {
       selectedVideoUrl = null;
       selectedVideoDuration = null;
