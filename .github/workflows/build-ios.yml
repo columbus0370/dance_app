@@ -1,0 +1,54 @@
+name: Build iOS
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  build-ios:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build iOS (unsigned)
+        run: |
+          flutter build ios --release --no-codesign
+
+      - name: Create IPA structure
+        run: |
+          cd build/ios/iphoneos
+          mkdir -p Payload
+          mv Runner.app Payload/
+          zip -r -y app-release.ipa Payload/
+          cd ../../..
+
+      - name: Upload iOS build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-ipa
+          path: build/ios/iphoneos/app-release.ipa
+          retention-days: 30
+
+      - name: Display build info
+        run: |
+          echo "✅ iOS IPA build completed!"
+          echo "📦 IPA Location: build/ios/iphoneos/app-release.ipa"
+          echo "📊 File size: $(ls -lh build/ios/iphoneos/app-release.ipa | awk '{print $5}')"
