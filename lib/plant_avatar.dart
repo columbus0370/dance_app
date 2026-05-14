@@ -95,23 +95,25 @@ class PlantAvatar extends HiveObject {
 
   int getMinutesUntilNextLevel(int exp) {
     int currentLevel = getLevel(exp);
-    if (currentLevel >= levelThresholds.length - 1) {
+    final thresholds = getLevelThresholds();
+    if (currentLevel >= thresholds.length - 1) {
       return 0;
     }
 
-    int nextThreshold = levelThresholds[currentLevel + 1];
+    int nextThreshold = thresholds[currentLevel + 1];
     int minutesNeeded = nextThreshold - exp;
     return minutesNeeded > 0 ? minutesNeeded : 0;
   }
 
   double getProgressToNextLevel(int exp) {
     int currentLevel = getLevel(exp);
-    if (currentLevel >= levelThresholds.length - 1) {
+    final thresholds = getLevelThresholds();
+    if (currentLevel >= thresholds.length - 1) {
       return 1.0;
     }
 
-    int currentThreshold = levelThresholds[currentLevel];
-    int nextThreshold = levelThresholds[currentLevel + 1];
+    int currentThreshold = thresholds[currentLevel];
+    int nextThreshold = thresholds[currentLevel + 1];
     int expInLevel = exp - currentThreshold;
     int expForLevel = nextThreshold - currentThreshold;
 
