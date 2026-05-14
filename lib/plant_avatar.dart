@@ -19,19 +19,24 @@ class PlantAvatar extends HiveObject {
   @HiveField(4)
   int year = 0;
 
+  @HiveField(5)
+  int monthlyGoal = 600;
+
   PlantAvatar({
     int exp = 0,
     int level = 0,
     DateTime? createdAt,
     int? month,
     int? year,
+    int monthlyGoal = 600,
   })  : currentExp = exp,
         level = level,
         createdAt = createdAt ?? DateTime.now(),
         month = month ?? DateTime.now().month,
-        year = year ?? DateTime.now().year;
+        year = year ?? DateTime.now().year,
+        monthlyGoal = monthlyGoal;
 
-  static const List<int> levelThresholds = [
+  static const List<int> defaultLevelThresholds = [
     0,
     600,
     1200,
@@ -58,9 +63,30 @@ class PlantAvatar extends HiveObject {
     'Full Bloom',
   ];
 
+  /// 月の目標分数に基づいて、動的なレベルしきい値を計算
+  List<int> calculateLevelThresholds() {
+    const int numLevels = 6;
+    final int goalPerLevel = monthlyGoal ~/ (numLevels - 1);
+
+    return [
+      0,
+      goalPerLevel,
+      goalPerLevel * 2,
+      goalPerLevel * 3,
+      goalPerLevel * 4,
+      goalPerLevel * 5,
+    ];
+  }
+
+  /// 現在のレベルしきい値を取得
+  List<int> getLevelThresholds() {
+    return calculateLevelThresholds();
+  }
+
   int getLevel(int exp) {
-    for (int i = levelThresholds.length - 1; i >= 0; i--) {
-      if (exp >= levelThresholds[i]) {
+    final thresholds = getLevelThresholds();
+    for (int i = thresholds.length - 1; i >= 0; i--) {
+      if (exp >= thresholds[i]) {
         return i;
       }
     }
@@ -69,23 +95,25 @@ class PlantAvatar extends HiveObject {
 
   int getMinutesUntilNextLevel(int exp) {
     int currentLevel = getLevel(exp);
-    if (currentLevel >= levelThresholds.length - 1) {
+    final thresholds = getLevelThresholds();
+    if (currentLevel >= thresholds.length - 1) {
       return 0;
     }
 
-    int nextThreshold = levelThresholds[currentLevel + 1];
+    int nextThreshold = thresholds[currentLevel + 1];
     int minutesNeeded = nextThreshold - exp;
     return minutesNeeded > 0 ? minutesNeeded : 0;
   }
 
   double getProgressToNextLevel(int exp) {
     int currentLevel = getLevel(exp);
-    if (currentLevel >= levelThresholds.length - 1) {
+    final thresholds = getLevelThresholds();
+    if (currentLevel >= thresholds.length - 1) {
       return 1.0;
     }
 
-    int currentThreshold = levelThresholds[currentLevel];
-    int nextThreshold = levelThresholds[currentLevel + 1];
+    int currentThreshold = thresholds[currentLevel];
+    int nextThreshold = thresholds[currentLevel + 1];
     int expInLevel = exp - currentThreshold;
     int expForLevel = nextThreshold - currentThreshold;
 
