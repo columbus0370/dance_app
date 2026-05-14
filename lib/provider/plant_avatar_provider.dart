@@ -138,9 +138,21 @@ class PlantAvatarNotifier extends StateNotifier<PlantAvatar> {
     final minimumGoal = 100;
     final adjustedGoal = goal < minimumGoal ? minimumGoal : goal;
 
+    // 新しいgoalに基づいてレベルを再計算
+    final tempPlant = PlantAvatar(
+      exp: state.currentExp,
+      level: 0,
+      createdAt: state.createdAt,
+      month: state.month,
+      year: state.year,
+      monthlyGoal: adjustedGoal,
+    );
+
+    final newLevel = tempPlant.getLevel(state.currentExp);
+
     final updatedPlant = PlantAvatar(
       exp: state.currentExp,
-      level: state.level,
+      level: newLevel,
       createdAt: state.createdAt,
       month: state.month,
       year: state.year,
