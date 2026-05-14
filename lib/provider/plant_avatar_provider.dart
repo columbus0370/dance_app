@@ -58,6 +58,7 @@ class PlantAvatarNotifier extends StateNotifier<PlantAvatar> {
           state.createdAt,
       month: now.month,
       year: now.year,
+      monthlyGoal: state.monthlyGoal,
     );
 
     repo.updatePlant(resetPlant);
@@ -93,6 +94,7 @@ class PlantAvatarNotifier extends StateNotifier<PlantAvatar> {
           state.createdAt,
       month: state.month,
       year: state.year,
+      monthlyGoal: state.monthlyGoal,
     );
 
     previousLevel = state.level;
@@ -124,10 +126,36 @@ class PlantAvatarNotifier extends StateNotifier<PlantAvatar> {
           state.createdAt,
       month: state.month,
       year: state.year,
+      monthlyGoal: state.monthlyGoal,
     );
 
     await repo.updatePlant(
         updatedPlant);
     state = updatedPlant;
+  }
+
+  Future<void> setMonthlyGoal(int goal) async {
+    final minimumGoal = 100;
+    final adjustedGoal = goal < minimumGoal ? minimumGoal : goal;
+
+    final updatedPlant = PlantAvatar(
+      exp: state.currentExp,
+      level: state.level,
+      createdAt: state.createdAt,
+      month: state.month,
+      year: state.year,
+      monthlyGoal: adjustedGoal,
+    );
+
+    await repo.updatePlant(updatedPlant);
+    state = updatedPlant;
+  }
+
+  List<int> getLevelThresholds() {
+    return state.getLevelThresholds();
+  }
+
+  int getMinutesPerLevel() {
+    return state.monthlyGoal ~/ 5;
   }
 }
